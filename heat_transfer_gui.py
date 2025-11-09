@@ -11,6 +11,7 @@ from tkinter import ttk, messagebox
 from pathlib import Path
 from ast import literal_eval
 
+
 APP_TITLE = "Heat Transfer – Solver GUI"
 THIS_DIR = Path(__file__).resolve().parent
 
@@ -24,12 +25,16 @@ TARGET_MODULES = [
     ("Forced Convection", "forced_convection"),
 ]
 
+
 def try_import(module_name: str):
     """
-    Try to import a module by name from THIS_DIR. Returns (module | None, error_text | None).
+    Try to import a module by name from THIS_DIR.
+    Returns (module | None, error_text | None).
     """
     try:
-        spec = importlib.util.spec_from_file_location(module_name, THIS_DIR / f"{module_name}.py")
+        spec = importlib.util.spec_from_file_location(module_name,
+                                                      THIS_DIR /
+                                                      f"{module_name}.py")
         if spec is None or spec.loader is None:
             return None, f"Could not find {module_name}.py next to this GUI."
         mod = importlib.util.module_from_spec(spec)
@@ -38,9 +43,11 @@ def try_import(module_name: str):
     except Exception:
         return None, traceback.format_exc()
 
+
 def find_functions(mod: types.ModuleType):
     """
-    Return a list of (name, function, signature, doc_first_line) for callables defined in `mod`.
+    Return a list of (name, function, signature,
+     doc_first_line) for callables defined in `mod`.
     Only includes functions defined in the module (not imports).
     """
     out = []
@@ -53,6 +60,7 @@ def find_functions(mod: types.ModuleType):
     # Sort by name for stable display
     out.sort(key=lambda t: t[0].lower())
     return out
+
 
 def coerce_value(text: str):
     """
@@ -71,6 +79,7 @@ def coerce_value(text: str):
             return float(text)
         except Exception:
             return text
+
 
 class FunctionRunner(ttk.Frame):
     def __init__(self, parent, module_title: str, module_name: str):
@@ -95,18 +104,26 @@ class FunctionRunner(ttk.Frame):
         self.func_combo.pack(side="left", padx=6, fill="x", expand=True)
         self.func_combo.bind("<<ComboboxSelected>>", self._on_func_selected)
 
-        self.reload_btn = ttk.Button(top, text="Reload Modules", command=self._on_reload_clicked)
+        self.reload_btn = ttk.Button(top,
+                                     text="Reload Modules",
+                                     command=self._on_reload_clicked)
         self.reload_btn.pack(side="right")
 
         # Middle: dynamic parameter form
-        self.form = ttk.LabelFrame(self, text="Inputs (leave exactly one blank to solve for it if the function supports None)")
+        self.form = ttk.LabelFrame(self,
+                                   text="Inputs"
+                                        " (leave exactly one blank to"
+                                        " solve for it if the function"
+                                        " supports None)")
         self.form.pack(fill="both", expand=True, padx=10, pady=6)
 
         # Bottom: compute + output
         bottom = ttk.Frame(self)
         bottom.pack(fill="both", expand=False, padx=10, pady=(6, 10))
 
-        self.compute_btn = ttk.Button(bottom, text="Compute", command=self._on_compute)
+        self.compute_btn = ttk.Button(bottom,
+                                      text="Compute",
+                                      command=self._on_compute)
         self.compute_btn.pack(side="left")
 
         self.output = tk.Text(self, height=10, wrap="word")
@@ -160,9 +177,14 @@ class FunctionRunner(ttk.Frame):
         row = 0
         for pname, param in sig.parameters.items():
             # Only support POSITIONAL_OR_KEYWORD and KEYWORD params
-            if param.kind not in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY):
+            if param.kind not in (inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                                  inspect.Parameter.KEYWORD_ONLY):
                 continue
-            ttk.Label(self.form, text=pname).grid(row=row, column=0, sticky="w", padx=8, pady=4)
+            ttk.Label(self.form, text=pname).grid(row=row,
+                                                  column=0,
+                                                  sticky="w",
+                                                  padx=8,
+                                                  pady=4)
             var = tk.StringVar()
             self.param_vars[pname] = var
 
@@ -176,12 +198,24 @@ class FunctionRunner(ttk.Frame):
                     hint = "(default: None)"
                 else:
                     hint = f"(default: {default})"
-                ttk.Label(self.form, text=hint, foreground="#666").grid(row=row, column=2, sticky="w", padx=8)
+                ttk.Label(self.form,
+                          text=hint,
+                          foreground="#666").grid(row=row,
+                                                  column=2,
+                                                  sticky="w",
+                                                  padx=8)
             row += 1
 
         # Add a small hint about types
-        ttk.Label(self.form, text="Tip: leave blank for None; you can also enter tuples like (1.2, 3.4).",
-                  foreground="#666").grid(row=row, column=0, columnspan=3, sticky="w", padx=8, pady=(8, 0))
+        ttk.Label(self.form,
+                  text="Tip: leave blank for None; "
+                       "you can also enter tuples like (1.2, 3.4).",
+                  foreground="#666").grid(row=row,
+                                          column=0,
+                                          columnspan=3,
+                                          sticky="w",
+                                          padx=8,
+                                          ady=(8, 0))
 
     def _on_reload_clicked(self):
         # Reload all target modules to pick up code changes
@@ -190,7 +224,8 @@ class FunctionRunner(ttk.Frame):
                 try:
                     importlib.reload(sys.modules[modname])
                 except Exception:
-                    # Ignore errors here; they'll be surfaced by this tab's reload
+                    # Ignore errors here;
+                    #    they'll be surfaced by this tab's reload
                     pass
         self.reload_module(initial=False)
         messagebox.showinfo("Reloaded", "Modules reloaded.")
@@ -216,7 +251,8 @@ class FunctionRunner(ttk.Frame):
 
         func_name = self.func_combo.get()
         if not func_name:
-            messagebox.showwarning("Select a function", "Please choose a function first.")
+            messagebox.showwarning("Select a function",
+                                   "Please choose a function first.")
             return
 
         # Get function object and signature
@@ -236,16 +272,19 @@ class FunctionRunner(ttk.Frame):
         for pname, var in self.param_vars.items():
             txt = var.get()
             val = coerce_value(txt)
-            if val is None and sig.parameters[pname].default is not inspect._empty:
+            if val is None and sig.parameters[pname
+                                              ].default is not inspect._empty:
                 # leave as missing to use default
                 continue
             kwargs[pname] = val
 
         try:
             # Identify which parameters were left blank in the UI
-            solved = [name for name, var in self.param_vars.items() if var.get().strip() == ""]
+            solved = [name for name, var in self.param_vars.items()
+                      if var.get().strip() == ""]
             result = func(**kwargs)
-            label = solved[0] if len(solved) == 1 else (", ".join(solved) if solved else None)
+            label = solved[0] if len(solved) == 1 else (", ".join(solved)
+                                                        if solved else None)
             # Pretty print result
             self._write_output(self._format_result(result, solved_label=label))
         except Exception as e:
@@ -279,6 +318,7 @@ def main():
     # Minimum decent size
     root.geometry("820x640")
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
