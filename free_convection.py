@@ -199,7 +199,7 @@ def free_convection_cylinder(NuD=None,
                              Cp=None):
     """
     Solves for convective heat transfer coefficient
-    for free convection over a horizontal cylinder.
+     for free convection over a horizontal cylinder.
     NuD = h_hat * D / k
     h_hat = NuD * k / D
     Returns h_hat and NuD
