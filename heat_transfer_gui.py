@@ -27,6 +27,115 @@ TARGET_MODULES = [
     ("Fins", "fins"),
 ]
 
+# Map common parameter symbols to their SI units so the GUI can display them.
+# This is based on the notation used in the companion heat-transfer modules.
+PARAM_UNITS = {
+    "q": "W",                       # heat-transfer rate
+    "q_total": "W",
+
+    "k": "W/(m·K)",                 # thermal conductivity
+
+    "h": "W/(m²·K)",                # convection / overall coefficients
+    "h0": "W/(m²·K)",
+    "h_c": "W/(m²·K)",
+    "h_r": "W/(m²·K)",
+    "h_total": "W/(m²·K)",
+
+    "A": "m²",
+    "A0": "m²",
+    "A1": "m²",
+    "A2": "m²",
+    "A_base": "m²",
+    "A_f": "m²",
+    "A_fins": "m²",
+    "A_s": "m²",
+
+    "T": "K (or °C, consistent)",
+    "T0": "K (or °C, consistent)",
+    "T1": "K (or °C, consistent)",
+    "T2": "K (or °C, consistent)",
+    "T_s": "K (or °C, consistent)",
+    "T_surf": "K (or °C, consistent)",
+    "T_inf": "K (or °C, consistent)",
+    "T_amb": "K (or °C, consistent)",
+
+    # Dimensionless groups
+    "Fo": "dimensionless",
+    "Re": "dimensionless",
+    "ReD": "dimensionless",
+    "ReL": "dimensionless",
+    "Pr": "dimensionless",
+    "NuD": "dimensionless",
+    "NuL": "dimensionless",
+    "RaD": "dimensionless",
+    "RaL": "dimensionless",
+
+    # Material and fluid properties
+    "Cp": "J/(kg·K)",
+    "rho": "kg/m³",
+    "mu": "Pa·s",
+    "nu": "m²/s",
+    "alpha": "m²/s",
+
+    # Radiation
+    "sigma": "W/(m²·K⁴)",
+    "epsilon": "dimensionless",
+    "eps1": "dimensionless",
+    "eps2": "dimensionless",
+    "eps_s": "dimensionless",
+    "F12": "dimensionless",
+    "F12_star": "dimensionless",
+    "E": "W/m²",
+
+    # Geometry / lengths
+    "L": "m",
+    "D": "m",
+    "d": "m",
+    "x": "m",
+    "r1": "m",
+    "r2": "m",
+    "P": "m",
+    "W": "m",
+
+    # Other scalars
+    "g": "m/s²",
+    "m": "1/m",         # fin parameter
+    "v": "m/s",
+    "t": "s",
+    "n": "dimensionless",
+    "n_terms": "dimensionless",
+    "eta_f": "dimensionless",
+}
+
+
+def get_units(symbol_name):
+    """
+    Return a human-readable units string for a given parameter name, or None
+    if no units are known. This lets the GUI show labels like "q [W]" and
+    "T1 [K (or °C, consistent)]".
+    """
+    if not symbol_name:
+        return None
+
+    unit = PARAM_UNITS.get(symbol_name)
+    if unit is not None:
+        return unit
+
+    # Light-weight heuristics so that new functions keep getting reasonable units
+    # without having to update this table every time.
+    if symbol_name.startswith("T"):
+        return "K (or °C, consistent)"
+    if symbol_name.startswith("A"):
+        return "m²"
+    if symbol_name.startswith("h"):
+        return "W/(m²·K)"
+    if symbol_name in {"L", "D", "d", "x", "r1", "r2", "P", "W"}:
+        return "m"
+    if symbol_name in {"Fo", "Re", "ReD", "ReL", "Pr", "NuD", "NuL", "RaD", "RaL"}:
+        return "dimensionless"
+
+    return None
+
 def try_import(module_name: str):
     """
     Try to import a module by name from THIS_DIR. Returns (module | None, error_text | None).
@@ -165,7 +274,13 @@ class FunctionRunner(ttk.Frame):
             # Only support POSITIONAL_OR_KEYWORD and KEYWORD params
             if param.kind not in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY):
                 continue
-            ttk.Label(self.form, text=pname).grid(row=row, column=0, sticky="w", padx=8, pady=4)
+
+            label_text = pname
+            unit = get_units(pname)
+            if unit:
+                label_text = f"{pname} [{unit}]"
+
+            ttk.Label(self.form, text=label_text).grid(row=row, column=0, sticky="w", padx=8, pady=4)
             var = tk.StringVar()
             self.param_vars[pname] = var
 
@@ -267,10 +382,15 @@ class FunctionRunner(ttk.Frame):
             tb = traceback.format_exc()
             self._write_output(f"Error calling {func.__name__}:\n{tb}")
 
-    def _format_result(self, result, solved_label=None):
+def _format_result(self, result, solved_label=None):
         header = "Result"
         if solved_label:
             header += f" for '{solved_label}'"
+            # If we know the physical units for this symbol, append them.
+            # We only attempt this for a single, simple symbol name.
+            unit = get_units(str(solved_label).strip())
+            if unit:
+                header += f" [{unit}]"
         if isinstance(result, tuple):
             lines = [header + ":"]
             for i, item in enumerate(result, 1):
@@ -278,6 +398,7 @@ class FunctionRunner(ttk.Frame):
             return "\n".join(lines)
         else:
             return f"{header}: {result!r}"
+
 
 
 def main():
