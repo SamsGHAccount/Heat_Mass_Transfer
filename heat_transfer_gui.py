@@ -382,22 +382,22 @@ class FunctionRunner(ttk.Frame):
             tb = traceback.format_exc()
             self._write_output(f"Error calling {func.__name__}:\n{tb}")
 
-def _format_result(self, result, solved_label=None):
-        header = "Result"
-        if solved_label:
-            header += f" for '{solved_label}'"
-            # If we know the physical units for this symbol, append them.
-            # We only attempt this for a single, simple symbol name.
-            unit = get_units(str(solved_label).strip())
-            if unit:
-                header += f" [{unit}]"
-        if isinstance(result, tuple):
-            lines = [header + ":"]
-            for i, item in enumerate(result, 1):
-                lines.append(f"  [{i}] {item!r}")
-            return "\n".join(lines)
-        else:
-            return f"{header}: {result!r}"
+    def _format_result(self, result, solved_label=None):
+            header = "Result"
+            if solved_label:
+                header += f" for '{solved_label}'"
+                # If we know the physical units for this symbol, append them.
+                # We only attempt this for a single, simple symbol name.
+                unit = get_units(str(solved_label).strip())
+                if unit:
+                    header += f" [{unit}]"
+            if isinstance(result, tuple):
+                lines = [header + ":"]
+                for i, item in enumerate(result, 1):
+                    lines.append(f"  [{i}] {item!r}")
+                return "\n".join(lines)
+            else:
+                return f"{header}: {result!r}"
 
 
 
