@@ -2,6 +2,7 @@ import sympy as sp
 import numpy as np  # kept for consistency with other modules
 
 
+# This was written by ChatGPT to reduce code duplication across fin functions
 def _solve_one_from_equations(
     equations,
     knowns,
@@ -58,16 +59,10 @@ def _solve_one_from_equations(
     result = float(sol[0])
     return result, unknown
 
-
-# ---------------------------------------------------------------------------
-# Basic fin geometry
-# ---------------------------------------------------------------------------
-
 def fin_cross_section(A=None, W=None, d=None):
     """
     Cross-sectional area of a rectangular fin
-
-        A = W * d
+    A = W * d
 
     Provide any two of (A, W, d) and leave the third as None to solve for it.
     """
@@ -92,21 +87,9 @@ def fin_cross_section(A=None, W=None, d=None):
 def fin_perimeter(P=None, W=None, d=None, use_approx=False):
     """
     Perimeter of a rectangular fin
-
-        Exact:   P = 2 W + 2 d
-        Approx:  P ≈ 2 W       (for d << W)
-
-    Parameters
-    ----------
-    P, W, d : float or None
-        Leave exactly one of these as None in the chosen relation.
-    use_approx : bool, optional
-        If True, use the approximate relation P ≈ 2 W (ignoring d).
-        If False (default), use the exact expression.
-
-    Returns
-    -------
-    The solved variable as a float.
+    Two methods of calculating the perimeter are available:
+    Exact:   P = 2 W + 2 d
+    Approx:  P ~= 2 W (for d << W)
     """
     P_s, W_s, d_s = sp.symbols("P W d")
 
@@ -138,29 +121,9 @@ def fin_perimeter(P=None, W=None, d=None, use_approx=False):
 
     return result
 
-
-# ---------------------------------------------------------------------------
-# Fin parameter m and heat transfer rate
-# ---------------------------------------------------------------------------
-
 def fin_m(m=None, h=None, P=None, k=None, A=None, d=None, use_rect_approx=False):
     """
     Fin parameter m for a straight fin of uniform cross-section.
-
-        m = sqrt(h P / (k A))                (general)
-          ≈ sqrt(2 h / (k d))                (thin rectangular fin, d << W)
-
-    Parameters
-    ----------
-    m, h, P, k, A, d : float or None
-        For m = sqrt(hP/(kA)), provide 4 of {m, h, P, k, A}.
-        For m ≈ sqrt(2h/(k d)), provide 3 of {m, h, k, d}.
-    use_rect_approx : bool, optional
-        If True, prefer the thin-rectangular approximation when possible.
-
-    Returns
-    -------
-    The solved variable as a float.
     """
     m_s, h_s, P_s, k_s, A_s, d_s = sp.symbols("m h P k A d")
 
@@ -190,7 +153,7 @@ def fin_m(m=None, h=None, P=None, k=None, A=None, d=None, use_rect_approx=False)
         error_message=(
             "Could not determine which relation to use for m. "
             "For m = sqrt(hP/(kA)), provide 4 of {m, h, P, k, A}. "
-            "For m ≈ sqrt(2h/(k d)), provide 3 of {m, h, k, d}."
+            "For m ~= sqrt(2h/(k d)), provide 3 of {m, h, k, d}."
         ),
     )
 
@@ -218,10 +181,7 @@ def fin_heat_transfer_insulated_tip(
 ):
     """
     Heat-transfer rate from a straight fin with an insulated tip (dT/dx = 0 at x = L):
-
-        q = k A m (T0 - T_inf) * tanh(m L)
-
-    Provide all variables except one to solve for the missing one.
+    q = k A m (T0 - T_inf) * tanh(m L)
     """
     q_s, k_s, A_s, m_s, T0_s, Tinf_s, L_s = sp.symbols("q k A m T0 T_inf L")
 
@@ -260,10 +220,7 @@ def fin_heat_transfer_insulated_tip(
 def fin_heat_transfer_infinite(q=None, k=None, A=None, m=None, T0=None, T_inf=None):
     """
     Heat-transfer rate from a very long fin (m L >> 1):
-
-        q_inf = k A m (T0 - T_inf)
-
-    Provide all variables except one to solve for the missing one.
+    q_inf = k A m (T0 - T_inf)
     """
     q_s, k_s, A_s, m_s, T0_s, Tinf_s = sp.symbols("q k A m T0 T_inf")
 
@@ -303,9 +260,7 @@ def fin_heat_transfer_long_rectangular(
     """
     Approximate heat-transfer rate from a very long, thin rectangular fin:
 
-        q_inf ≈ (2 k h d)^{1/2} * W * (T0 - T_inf)
-
-    Provide all variables except one to solve for the missing one.
+    q_inf ~= (2 k h d)^{1/2} * W * (T0 - T_inf)
     """
     q_s, k_s, h_s, d_s, W_s, T0_s, Tinf_s = sp.symbols("q k h d W T0 T_inf")
 
@@ -343,20 +298,12 @@ def fin_heat_transfer_long_rectangular(
 
     return result
 
-
-# ---------------------------------------------------------------------------
-# Fin efficiency and overall surface performance
-# ---------------------------------------------------------------------------
-
 def fin_surface_area(A_f=None, L=None, W=None, d=None, use_approx=False):
     """
     Surface area of a straight rectangular fin:
 
-        A_f = 2 L (W + d)          (general)
-            ≈ 2 L W                (for d << W)
-
-    Provide inputs so that exactly one of A_f, L, W, d is left as None in the
-    relation that you wish to use.
+    A_f = 2 L (W + d)
+    or A_f ~= 2 L W (for d << W)
     """
     A_f_s, L_s, W_s, d_s = sp.symbols("A_f L W d")
 
@@ -384,7 +331,7 @@ def fin_surface_area(A_f=None, L=None, W=None, d=None, use_approx=False):
         error_message=(
             "Could not determine which relation to use for fin surface area. "
             "For A_f = 2L(W + d) provide 3 of {A_f, L, W, d}. "
-            "For A_f ≈ 2LW provide 2 of {A_f, L, W}."
+            "For A_f ~= 2LW provide 2 of {A_f, L, W}."
         ),
     )
 
@@ -448,7 +395,7 @@ def fin_total_finned_area(A_fins=None, n=None, A_f=None):
     """
     Total finned surface area for n identical fins:
 
-        A_fins = n * A_f
+    A_fins = n * A_f
     """
     A_fins_s, n_s, A_f_s = sp.symbols("A_fins n A_f")
 
@@ -479,11 +426,8 @@ def fin_total_finned_area(A_fins=None, n=None, A_f=None):
 def fin_base_area_without_fins(A0=None, A_base=None, n=None, A=None):
     """
     Net base area that is not covered by fins:
-
-        A0 = A_base - n * A
-
+    A0 = A_base - n * A
     where A is the cross-sectional area of a single fin.
-
     Provide all but one of (A0, A_base, n, A).
     """
     A0_s, A_base_s, n_s, A_s = sp.symbols("A0 A_base n A")
@@ -527,9 +471,9 @@ def fin_total_heat_transfer(
     """
     Total heat-transfer rate from base + fins:
 
-        q_total = A0 h0 (T0 - T_inf) + eta_f A_fins h (T0 - T_inf)
+    q_total = A0 h0 (T0 - T_inf) + eta_f A_fins h (T0 - T_inf)
 
-    Note: the convection coefficients h0 (base) and h (fins) may differ.
+    Note: the convection coefficients h0 (base) and h (fins) may differ!!!
 
     Provide known values so that exactly one of
     (q_total, A0, h0, eta_f, A_fins, h, T0, T_inf) is left as None.

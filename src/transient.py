@@ -6,21 +6,7 @@ def fourier_number(Fo=None, alpha=None, t=None, L=None):
     """
     Fourier number for transient 1D conduction in a plane wall:
 
-        Fo = alpha * t / L**2
-
-    Parameters
-    ----------
-    Fo : float, optional
-        Fourier modulus (dimensionless).
-    alpha : float, optional
-        Thermal diffusivity [L^2 / t].
-    t : float, optional
-        Time [t].
-    L : float, optional
-        Wall thickness (or characteristic length) [L].
-
-    Provide any three of (Fo, alpha, t, L) and leave the remaining one
-    as None. The function solves for the missing quantity.
+    Fo = alpha * t / L**2
     """
     Fo_s, alpha_s, t_s, L_s = sp.symbols('Fo alpha t L')
 
@@ -67,11 +53,7 @@ def flat_wall_long_time(T=None, x=None, T1=None, T2=None, L=None):
     (Fourier number Fo = alpha t / L^2 >> 1).
 
     Temperature distribution becomes linear between T1 and T2:
-
-        T(x) = T1 - (T1 - T2) * x / L
-
-    Provide any four of (T, x, T1, T2, L) and leave the remaining one
-    as None. The function solves for the missing quantity.
+    T(x) = T1 - (T1 - T2) * x / L
     """
     T_s, x_s, T1_s, T2_s, L_s = sp.symbols('T x T1 T2 L')
 
@@ -103,14 +85,8 @@ def flat_wall_short_time(T=None, x=None, t=None, T1=None, T2=None, alpha=None):
     """
     Short-time solution for a flat wall suddenly heated on one side
     (Fourier number Fo << 1).
-
     Error-function solution:
-
-        (T(x, t) - T2) / (T1 - T2)
-            = 1 - erf( x / (2 * sqrt(alpha * t)) )
-
-    Provide any five of (T, x, t, T1, T2, alpha) and leave the remaining
-    one as None. The function solves for that quantity using SymPy.
+    (T(x, t) - T2) / (T1 - T2) = 1 - erf( x / (2 * sqrt(alpha * t)))
     """
     T_s, x_s, t_s, T1_s, T2_s, alpha_s = sp.symbols('T x t T1 T2 alpha', positive=True)
 
@@ -144,16 +120,8 @@ def flat_wall_short_time(T=None, x=None, t=None, T1=None, T2=None, alpha=None):
 def flat_wall_full_series(T=None, x=None, t=None, T1=None, T2=None,
                           alpha=None, L=None, n_terms=50):
     """
-    Exact series solution for a flat wall suddenly heated on one side,
-    valid for all times:
-
-        (T - T2) / (T1 - T2)
-            = 1 - x/L - (2/pi) * sum_{n=1..∞} (1/n)
-              * sin(n*pi*x/L) * exp(-n^2*pi^2*alpha*t/L^2)
-
-    This implementation computes T by truncating the infinite sum
-    after `n_terms` terms. Only T is solved for; all other quantities
-    must be provided (leave T blank in the GUI).
+    Exact series solution for a flat wall suddenly heated on one side, valid for all times:
+    (T - T2) / (T1 - T2) = 1 - x/L - (2/pi) * sum_{n=1...infinity} (1/n) * sin(n*pi*x/L) * exp(-n^2*pi^2*alpha*t/L^2)
     """
     if T is not None:
         raise ValueError("flat_wall_full_series only solves for T; "
