@@ -22,6 +22,9 @@ TARGET_MODULES = [
     ("Conduction", "conduction"),
     ("Free Convection", "free_convection"),
     ("Forced Convection", "forced_convection"),
+    ("Radiation", "radiation"),
+    ("Transient", "transient"),
+    ("Fins", "fins"),
 ]
 
 def try_import(module_name: str):
@@ -29,7 +32,7 @@ def try_import(module_name: str):
     Try to import a module by name from THIS_DIR. Returns (module | None, error_text | None).
     """
     try:
-        spec = importlib.util.spec_from_file_location(module_name, THIS_DIR / f"{module_name}.py")
+        spec = importlib.util.spec_from_file_location(module_name, THIS_DIR / "src" / f"{module_name}.py")
         if spec is None or spec.loader is None:
             return None, f"Could not find {module_name}.py next to this GUI."
         mod = importlib.util.module_from_spec(spec)
@@ -242,15 +245,27 @@ class FunctionRunner(ttk.Frame):
             kwargs[pname] = val
 
         try:
-            # Identify which parameters were left blank in the UI
-            solved = [name for name, var in self.param_vars.items() if var.get().strip() == ""]
             result = func(**kwargs)
-            label = solved[0] if len(solved) == 1 else (", ".join(solved) if solved else None)
+
+            # 1) Prefer a label provided by the function itself
+            label = getattr(func, "last_solved", None)
+
+            # 2) Fallback: infer from blank UI fields (old behaviour)
+            if not label:
+                solved = [
+                    name for name, var in self.param_vars.items()
+                    if var.get().strip() == ""
+                ]
+                if len(solved) == 1:
+                    label = solved[0]
+                elif solved:
+                    label = ", ".join(solved)
+
             # Pretty print result
             self._write_output(self._format_result(result, solved_label=label))
         except Exception as e:
             tb = traceback.format_exc()
-            self._write_output(f"❌ Error calling {func.__name__}:\n{tb}")
+            self._write_output(f"Error calling {func.__name__}:\n{tb}")
 
     def _format_result(self, result, solved_label=None):
         header = "Result"
