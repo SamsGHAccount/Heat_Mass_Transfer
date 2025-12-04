@@ -36,7 +36,7 @@ def conduction_1d(q=None, k=None, A=None, T1=None, T2=None, L=None):
     
     return float(solution[0])
 
-def conduction_radial(q=None, k=None, L=None, T1=None, T2=None, r1=None, r2=None):
+def conduction_radial_cylinder(q=None, k=None, L=None, T1=None, T2=None, r1=None, r2=None):
     """
     Solves the radial steady-state conduction equation for the unknown variable.
     q = 2 * π * k * L * (T1 - T2) / ln(r2/r1)
@@ -72,7 +72,7 @@ def conduction_radial(q=None, k=None, L=None, T1=None, T2=None, r1=None, r2=None
     
     return float(solution[0])
 
-def conduction_spherical(q=None, k=None, L=None, T1=None, T2=None, r1=None, r2=None):
+def conduction_spherical(q=None, k=None, T1=None, T2=None, r1=None, r2=None):
     """
     Solves the spherical steady-state conduction equation for the unknown variable.
     q = 4 * π * k * L * (T1 - T2) / (1/r1 - 1/r2)
@@ -82,13 +82,12 @@ def conduction_spherical(q=None, k=None, L=None, T1=None, T2=None, r1=None, r2=N
     q_sym, k_sym, L_sym, T1_sym, T2_sym, r1_sym, r2_sym = sp.symbols('q k L T1 T2 r1 r2')
     
     # Equation
-    eq = sp.Eq(q_sym, 4 * sp.pi * k_sym * L_sym * (T1_sym - T2_sym) / (1/r1_sym - 1/r2_sym))
+    eq = sp.Eq(q_sym, 4 * sp.pi * r1_sym * r2_sym * k_sym * (T1_sym - T2_sym) / (1/r1_sym - 1/r2_sym))
 
     # Build dictionary of knowns
     knowns = {
         q_sym: q,
         k_sym: k,
-        L_sym: L,
         T1_sym: T1,
         T2_sym: T2,
         r1_sym: r1,
