@@ -63,10 +63,6 @@ def forced_convection_cylinder(NuD=None, ReD=None, Pr=None, D=None, k=None):
     h_hat = NuD * k / D
     return h_hat, NuD
 
-
-
-import sympy as sp
-
 def Prandtl(Pr=None, Cp=None, mu=None, k=None, nu=None, alpha=None):
     """
     Solve any one variable from the Prandtl-number relations
